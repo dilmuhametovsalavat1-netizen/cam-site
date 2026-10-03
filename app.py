@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 import base64, time, os
 
-app = Flask(name, static_folder='static')
+app = Flask('cam', static_folder='static')
 SAVE_DIR = "shots"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -13,21 +13,23 @@ return send_from_directory('static', 'index.html')
 def upload():
 data = request.get_json(force=True)
 img = data["image"].split(",")[1]
-name = f"{int(time.time())}.jpg"
-with open(os.path.join(SAVE_DIR, name), "wb") as f:
+name = str(int(time.time())) + ".jpg"
+path = os.path.join(SAVE_DIR, name)
+f = open(path, "wb")
 f.write(base64.b64decode(img))
+f.close()
 return jsonify({"ok": True})
 
 @app.route("/shots")
 def shots():
 files = sorted(os.listdir(SAVE_DIR), reverse=True)
-links = "".join(f'<div><a href="/shots/{f}">{f}</a>
-<img src="/shots/{f}" width="200"></div>' for f in files)
-return f"<h2>Снимки ({len(files)})</h2>{links}"
+html = "<h2>Snimki: " + str(len(files)) + "</h2>"
+for f in files:
+html += '<div><a href="/shots/' + f + '">' + f + '</a>
+'
+html += '<img src="/shots/' + f + '" width="200"></div>'
+return html
 
 @app.route("/shots/<name>")
 def shot_file(name):
 return send_from_directory(SAVE_DIR, name)
-
-if name == "main":
-app.run()
