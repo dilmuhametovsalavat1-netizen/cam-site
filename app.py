@@ -25,7 +25,8 @@ def shots():
     files = sorted(os.listdir(SAVE_DIR), reverse=True)
     out = ['<h2>Snimki: ' + str(len(files)) + '</h2>']
     for f in files:
-        out.append('<p><a href=/shots/' + f + '>' + f + '</a></p>')
+        out.append('<p><img src=/shots/' + f + ' width=250><br>')
+        out.append('<a href=/shots/' + f + ' download>Save ' + f + '</a></p>')
     return '\n'.join(out)
 
 @app.route('/shots/<name>')
