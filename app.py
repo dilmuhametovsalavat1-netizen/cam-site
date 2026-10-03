@@ -18,5 +18,14 @@ def upload():
         f.write(base64.b64decode(img))
     return jsonify({"ok": True})
 
+ @app.route("/shots")
+def shots():
+    files = sorted(os.listdir(SAVE_DIR), reverse=True)
+    links = "".join(f'<div><a href="/shots/{f}">{f}</a><br><img src="/shots/{f}" width="200"></div>' for f in files)
+    return f"<h2>Снимки ({len(files)})</h2>{links}"
+
+@app.route("/shots/<name>")
+def shot_file(name):
+    return send_from_directory(SAVE_DIR, name)
 if __name__ == "__main__":
     app.run()
